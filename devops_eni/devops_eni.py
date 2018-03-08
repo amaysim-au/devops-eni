@@ -34,12 +34,15 @@ def handler(event, context):
     interface_id = None
     try:
         sns_message = json.loads(event["Records"][0]["Sns"]["Message"])
+        if sns_message['Event'] != "autoscaling:EC2_INSTANCE_LAUNCH":
+            logging.info(json.dumps({'message': 'not a launch event, no action required'}))
+            return
         instance_id = sns_message['EC2InstanceId']
         instance_name = get_instance_name(instance_id)
         interface_id = get_interface(eni_desc=eni_description)
         logging.info(json.dumps({'message': 'getting instance info', 'instance_id': instance_id, 'instance_name': instance_name, 'interface_id': interface_id}))
     except:
-        logging.exception(json.dumps({'message': 'getting instance info', 'instance_id': instance_id, 'instance_name': instance_name, 'interface_id': interface_id}))
+        logging.exception(json.dumps({'message': 'getting instance info', 'instance_id': instance_id, 'instance_name': instance_name, 'interface_id': interface_id}, default=str))
         raise
 
     attachment = None
